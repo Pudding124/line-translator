@@ -51,6 +51,10 @@ jobs:
           ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
         run: printf '%s' "$ACCESS_TOKEN" | docker login "$REGISTRY" --username oauth2accesstoken --password-stdin
 
+      - name: Prepare image tags
+        id: tags
+        run: echo "commit=${GITHUB_SHA:0:8}" >> "$GITHUB_OUTPUT"
+
       - name: Build and push
         id: build
         uses: docker/build-push-action@v7
@@ -58,14 +62,18 @@ jobs:
           context: .
           push: true
           platforms: linux/amd64
-          tags: ${{ env.IMAGE }}:sha-${{ github.sha }}
+          tags: |
+            ${{ env.IMAGE }}:latest
+            ${{ env.IMAGE }}:${{ steps.tags.outputs.commit }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
       - name: Write image reference
         env:
+          COMMIT_TAG: ${{ steps.tags.outputs.commit }}
           DIGEST: ${{ steps.build.outputs.digest }}
         run: |
           echo '### Published image' >> "$GITHUB_STEP_SUMMARY"
-          echo "\`$IMAGE:sha-$GITHUB_SHA\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "\`$IMAGE:latest\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "\`$IMAGE:$COMMIT_TAG\`" >> "$GITHUB_STEP_SUMMARY"
           echo "\`$IMAGE@$DIGEST\`" >> "$GITHUB_STEP_SUMMARY"

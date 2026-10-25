@@ -50,7 +50,7 @@ Google Cloud 需事先建立 Docker 格式的 Artifact Registry repository，並
 
 授予該 repository 對應的 federated principal 在上述服務帳號上的 `roles/iam.workloadIdentityUser`，並授予服務帳號在目的 Artifact Registry repository 上的 `roles/artifactregistry.writer`。此帳號只負責推 image，不需要 Cloud Run 部署權限，也不需上傳服務帳號 JSON 金鑰。驗證設定可參考 [Google auth action 文件](https://github.com/google-github-actions/auth#workload-identity-federation-through-a-service-account)。
 
-image 路徑為 `asia-east1-docker.pkg.dev/mars-personal-512604/line-translator/webhook:sha-COMMIT_SHA`。每次成功後，Actions summary 會列出 tag 與含 digest 的完整路徑，可自行用於 Cloud Run 部署。workflow 使用完整 commit SHA 作為 tag，不推送 `latest`；重跑同一 commit 仍可能更新該 tag，需要固定版本時請使用 digest。
+每次建置將同一個 image 推送為兩個 tag：`asia-east1-docker.pkg.dev/mars-personal-512604/line-translator/webhook:latest` 與 `asia-east1-docker.pkg.dev/mars-personal-512604/line-translator/webhook:COMMIT前八碼`（例如 `676c4a8f`）。`latest` 隨每次成功推送更新；Artifact Registry repository 需允許 tag 更新（不可啟用 immutable tags）。Actions summary 會列出兩個 tag 與含 digest 的完整路徑；digest 是同一個 image 的固定內容識別，不代表另外上傳一個 image。可自行用於 Cloud Run 部署，需要固定版本時請使用 digest。
 
 以下保留手動部署指令；若已透過 GitHub Actions 推送 image，可略過 `gcloud builds submit`，並將 `$image` 換成 Actions summary 的 image 路徑。
 
