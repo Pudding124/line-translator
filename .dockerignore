@@ -1,0 +1,7 @@
+.git
+.github
+gha-creds-*.json
+.env
+*.exe
+*credentials*.json
+service-account*.json

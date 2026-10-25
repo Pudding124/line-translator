@@ -1,0 +1,6 @@
+.gcloudignore
+.git
+.env
+*.exe
+*credentials*.json
+service-account*.json
